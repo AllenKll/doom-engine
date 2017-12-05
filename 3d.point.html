@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()">
+<script>
+
+var thirdPersonGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = 200;
+        this.canvas.height = 150;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+        this.interval = setInterval(updateGameArea, 20);
+        },
+    clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+var firstPersonGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = 200;
+        this.canvas.height = 150;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+        this.interval = setInterval(updateGameArea, 20);
+        },
+    clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+var keyPressed=new Array();
+
+var point = new Object();
+point.x = 30;
+point.y = 70;
+
+var player = new Object();
+player.x = 20;
+player.y = 70;
+player.angle = 0;
+player.speed = 0.5;
+
+function startGame()
+{
+    firstPersonGameArea.start();
+    thirdPersonGameArea.start();
+}
+
+function updateGameArea()
+{
+    processInput();
+    drawFirstPersonMap();
+    drawThirdPersonMap();
+}
+
+function drawFirstPersonMap()
+{
+    // transform objects
+    var xplayer = new Object();
+    xplayer.x = 100;
+    xplayer.y = 75;
+
+    var cos = Math.cos(player.angle);
+    var sin = Math.sin(player.angle);
+
+    var xpoint = new Object();
+    
+    // tanslate the point ( get coordinates with respect to player)
+    xpoint.x = point.x - player.x;
+    xpoint.y = point.y - player.y;
+
+    // rotate ( with repect to player) http://www.sunshine2k.de/articles/RotationDerivation.pdf
+    // x' = x cos T - y sin T
+    // y' = x sin T + y cos T    
+    // BUT WRT, player looking north, need addition PI/2 rotation, so swap sin and cos.
+    var tmp = xpoint.x;
+    xpoint.x = tmp * sin - xpoint.y * cos;
+    xpoint.y = tmp * cos + xpoint.y * sin;
+
+    // convert back to absolute
+    xpoint.x = xplayer.x - xpoint.x;
+    xpoint.y = xplayer.y - xpoint.y;
+
+    ctx = firstPersonGameArea.context;
+    // clear the display area
+    firstPersonGameArea.clear();
+
+    // draw point
+    ctx.beginPath();
+    ctx.fillStyle="black";
+    ctx.fillRect(xpoint.x, xpoint.y,1,1); 
+
+    // draw player
+    ctx.beginPath();
+    ctx.strokeStyle = "blue";
+    ctx.moveTo( xplayer.x, xplayer.y);
+    ctx.lineTo( xplayer.x, xplayer.y-10)
+    ctx.stroke()
+    ctx.fillStyle="red";
+    ctx.fillRect( xplayer.x, xplayer.y,1,1); 
+}
+
+
+
+
+function drawThirdPersonMap()
+{
+    ctx = thirdPersonGameArea.context;
+    // clear the display area
+    thirdPersonGameArea.clear();
+    // draw point
+    ctx.beginPath();
+    ctx.fillStyle="black";
+    ctx.fillRect(point.x, point.y,1,1); 
+    
+
+    // draw player
+    ctx.beginPath();
+    ctx.strokeStyle = "blue";
+    ctx.moveTo(player.x, player.y);
+    ctx.lineTo( Math.cos(player.angle)*10 + player.x, Math.sin(player.angle)*10 + player.y)
+    ctx.stroke()
+    ctx.fillStyle="red";
+    ctx.fillRect(player.x, player.y,1,1); 
+}
+
+
+var TAU = Math.PI * 2;
+
+function rotateLeft() {
+  player.angle -= .05;
+  if ( player.angle < -TAU ) player.angle += TAU;
+  //player.angle -= Math.PI/4;
+};
+function rotateRight() {
+  player.angle += .05;
+  if ( player.angle > TAU ) player.angle -= TAU;
+};
+function forward() {
+  player.x += Math.cos(player.angle)* player.speed;
+  player.y += Math.sin(player.angle)* player.speed;
+};
+
+function backward() {
+  player.x -= Math.cos(player.angle)* player.speed;
+  player.y -= Math.sin(player.angle)* player.speed;
+};
+
+
+window.addEventListener('keydown', function(event) {
+    keyPressed[event.keyCode] = true;
+});
+window.addEventListener('keyup', function(event) {
+    keyPressed[event.keyCode] = false;
+});
+
+function processInput() {
+  // case 37: // Left
+  // case 65: // A
+  if ( keyPressed[37] ||  keyPressed[65] )
+      rotateLeft();
+
+  // case 38: // Up
+  // case 87: // W
+  if ( keyPressed[38] ||  keyPressed[87] )
+      forward();
+
+  // case 39: // Right
+  // case 68: // D
+  if ( keyPressed[39] ||  keyPressed[68] )
+      rotateRight();
+
+  // case 40: // Down
+  // case 72: // S
+  if ( keyPressed[40] ||  keyPressed[72] )
+      backward();
+}
+
+</script>
+<br>
+</body>
+</html>
