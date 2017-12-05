@@ -64,6 +64,11 @@ wall.points = new Array();
 wall.points[0] = [70,20];
 wall.points[1] = [70,120];
 
+var wall2 = new Object();
+wall2.points = new Array();
+wall2.points[0] = [70,20];
+wall2.points[1] = [150,20];
+
 
 var player = new Object();
 player.x = 20;
@@ -180,63 +185,58 @@ function drawFirstPersonView()
 
 }
 
-function translateAndRotate(polygon, x, y, angle)
+function translateAndRotate(points, x, y, angle)
 {
-    var newPoints = Array();
-    // tanslate the wall
-    for ( i in objects.points){
-        newPoints[i] = [polygon.points[i][0] - x, polygon.points[i][1]-y];
-    }
+    var cos = Math.cos(angle);
+    var sin = Math.sin(angle);
 
+    var newPoints = Array();
+    var tmp = 0.0;
+    // for each point
+    for ( i in points){
+        // tanslate the relative to given x, y
+        newPoints[i] = [points[i][0] - x, points[i][1]-y];
+
+        // rotate relative to the given angle
+        tmp = newPoints[i][0] * cos + newPoints[i][1] * sin;
+        newPoints[i][0] = newPoints[i][0] * sin - newPoints[i][1] * cos;
+        newPoints[i][1] = tmp;
+    }
+    return newPoints;
 }
 
 
 function drawOverheadMap()
 {
     // transform objects
-    var xplayer = new Object();
-    xplayer.x = 100;
-    xplayer.y = 75;
+    var view = new Object();
+    view.x = 100;
+    view.y = 75;
 
     var xwall = new Object();
-    xwall.points = new Array();
     var xwall2 = new Object();
-    xwall2.points = new Array();
     
-    // tanslate the wall
-    xwall.points[0] = [wall.points[0][0] - player.x, wall.points[0][1]-player.y];
-    xwall.points[1] = [wall.points[1][0] - player.x, wall.points[1][1]-player.y];
+    xwall.points = translateAndRotate(wall.points, player.x, player.y, player.angle);
 
-    
-    // rotate the wall
-    var tmpy1 = xwall.points[0][0] * Math.cos(player.angle) + xwall.points[0][1] * Math.sin(player.angle);
-    var tmpy2 = xwall.points[1][0] * Math.cos(player.angle) + xwall.points[1][1] * Math.sin(player.angle);
-    
-    xwall.points[0][0] = xwall.points[0][0] * Math.sin(player.angle) - xwall.points[0][1] * Math.cos(player.angle);
-    xwall.points[1][0] = xwall.points[1][0] * Math.sin(player.angle) - xwall.points[1][1] * Math.cos(player.angle);
-    
-    xwall.points[0][1] = tmpy1;
-    xwall.points[1][1] = tmpy2;
-    
     ctx = overheadGameArea.context;
     // clear the display area
     overheadGameArea.clear();
     // draw wall1
     ctx.beginPath();
-    ctx.strokeStyle="red";
-    ctx.moveTo( xplayer.x - xwall.points[0][0], xplayer.y -xwall.points[0][1]);
-    ctx.lineTo( xplayer.x - xwall.points[1][0], xplayer.y - xwall.points[1][1]);
+    ctx.strokeStyle="red";  /// this is further translated to view center
+    ctx.moveTo( view.x - xwall.points[0][0], view.y - xwall.points[0][1]);
+    ctx.lineTo( view.x - xwall.points[1][0], view.y - xwall.points[1][1]);
     ctx.stroke();
 
-    
+
     // draw player
     ctx.beginPath();
     ctx.strokeStyle = "blue";
-    ctx.moveTo( xplayer.x, xplayer.y);
-    ctx.lineTo( xplayer.x, xplayer.y-10)
+    ctx.moveTo( view.x, view.y);
+    ctx.lineTo( view.x, view.y-10)
     ctx.stroke()
     ctx.fillStyle="red";
-    ctx.fillRect( xplayer.x, xplayer.y,1,1); 
+    ctx.fillRect( view.x, view.y,1,1); 
 }
 
 
@@ -253,7 +253,6 @@ function drawThirdPersonMap()
     ctx.moveTo( wall.points[0][0],wall.points[0][1]);
     ctx.lineTo( wall.points[1][0],wall.points[1][1]);
     ctx.stroke();
-
 
     // draw player
     ctx.beginPath();
