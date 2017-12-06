@@ -101,28 +101,17 @@ function drawFirstPersonView()
     xplayer.y = 75;
 
     var xwall = new Object();
-    xwall.points = new Array();
+    var xwall2 = new Object();
     
-    // tanslate the wall
-    xwall.points[0] = [wall.points[0][0] - player.x, wall.points[0][1]-player.y];
-    xwall.points[1] = [wall.points[1][0] - player.x, wall.points[1][1]-player.y];
-
-    // rotate the wall
-    var tmpy1 = xwall.points[0][0] * Math.cos(player.angle) + xwall.points[0][1] * Math.sin(player.angle);
-    var tmpy2 = xwall.points[1][0] * Math.cos(player.angle) + xwall.points[1][1] * Math.sin(player.angle);
-
-    xwall.points[0][0] = xwall.points[0][0] * Math.sin(player.angle) - xwall.points[0][1] * Math.cos(player.angle);
-    xwall.points[1][0] = xwall.points[1][0] * Math.sin(player.angle) - xwall.points[1][1] * Math.cos(player.angle);
-
-    xwall.points[0][1] = tmpy1;
-    xwall.points[1][1] = tmpy2;
+    xwall.points = translateAndRotate(wall.points, player.x, player.y, player.angle);
+    xwall2.points = translateAndRotate(wall2.points, player.x, player.y, player.angle);
     
     // calculate for the perspective transformed area
-    var x1  = -xwall.points[0][0] * 65 / xwall.points[0][1];
+    var x1  = -xwall.points[0][0] * 50 / xwall.points[0][1];
     var y1a = -1000 / xwall.points[0][1];
     var y1b =  1000 / xwall.points[0][1];
 
-    var x2  = -xwall.points[1][0] * 65 / xwall.points[1][1];
+    var x2  = -xwall.points[1][0] * 50 / xwall.points[1][1];
     var y2a = -1000 / xwall.points[1][1];
     var y2b =  1000 / xwall.points[1][1];
 
@@ -217,17 +206,24 @@ function drawOverheadMap()
     var xwall2 = new Object();
     
     xwall.points = translateAndRotate(wall.points, player.x, player.y, player.angle);
+    xwall2.points = translateAndRotate(wall2.points, player.x, player.y, player.angle);
 
     ctx = overheadGameArea.context;
     // clear the display area
     overheadGameArea.clear();
     // draw wall1
     ctx.beginPath();
-    ctx.strokeStyle="red";  /// this is further translated to view center
+    ctx.strokeStyle="green";  /// this is further translated to view center
     ctx.moveTo( view.x - xwall.points[0][0], view.y - xwall.points[0][1]);
     ctx.lineTo( view.x - xwall.points[1][0], view.y - xwall.points[1][1]);
     ctx.stroke();
 
+    // draw wall2
+    ctx.beginPath();
+    ctx.strokeStyle="red";  /// this is further translated to view center
+    ctx.moveTo( view.x - xwall2.points[0][0], view.y - xwall2.points[0][1]);
+    ctx.lineTo( view.x - xwall2.points[1][0], view.y - xwall2.points[1][1]);
+    ctx.stroke();
 
     // draw player
     ctx.beginPath();
@@ -249,10 +245,18 @@ function drawThirdPersonMap()
     thirdPersonGameArea.clear();
     // draw wall
     ctx.beginPath();
-    ctx.strokeStyle="red";
+    ctx.strokeStyle="green";
     ctx.moveTo( wall.points[0][0],wall.points[0][1]);
     ctx.lineTo( wall.points[1][0],wall.points[1][1]);
     ctx.stroke();
+
+    // draw second
+    ctx.beginPath();
+    ctx.strokeStyle="red";
+    ctx.moveTo( wall2.points[0][0],wall2.points[0][1]);
+    ctx.lineTo( wall2.points[1][0],wall2.points[1][1]);
+    ctx.stroke();
+
 
     // draw player
     ctx.beginPath();
